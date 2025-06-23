@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { LoadingOverlay } from '../../components/LoadingOverlay';
 import { supabase } from '../../lib/supabase';
+import useAuthStore from '../../stores/auth';
 
 export default function SignupScreen() {
   const [email, setEmail] = useState('');
@@ -26,6 +27,8 @@ export default function SignupScreen() {
   const [passwordError, setPasswordError] = useState(false);
   const [confirmError, setConfirmError] = useState(false);
   const [codeError, setCodeError] = useState(false);
+
+  const { setUser, initialize } = useAuthStore();
 
   const handleSignup = async () => {
     // Reset all errors
@@ -109,7 +112,7 @@ export default function SignupScreen() {
 
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
+      const { error, data } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -122,7 +125,15 @@ export default function SignupScreen() {
         Alert.alert('Signup failed', error.message);
         return;
       }
-      Alert.alert('Success', 'Account created successfully');
+      // Auto-login after successful signup
+      const { error: loginError, data: loginData } = await supabase.auth.signInWithPassword({ email, password });
+      if (loginError) {
+        Alert.alert('Signup succeeded, but auto-login failed', loginError.message);
+        return;
+      }
+      if (loginData?.user) setUser(loginData.user);
+      if (initialize) initialize();
+      Alert.alert('Success', 'Account created and logged in successfully');
       router.replace('/(tabs)');
     } catch (error) {
       Alert.alert('Error', 'An unexpected error occurred. Please try again.');

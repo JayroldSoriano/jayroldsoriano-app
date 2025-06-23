@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -13,6 +14,7 @@ export default function LoginScreen() {
   const [loginError, setLoginError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { initialize, setUser } = useAuthStore();
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (email && password) setLoginError(false);
@@ -89,7 +91,7 @@ export default function LoginScreen() {
           <TextInput
             value={password}
             onChangeText={setPassword}
-            secureTextEntry
+            secureTextEntry={!showPassword}
             placeholder="Password"
             placeholderTextColor="#888"
             style={[
@@ -100,6 +102,13 @@ export default function LoginScreen() {
             onFocus={() => setPasswordFocused(true)}
             onBlur={() => setPasswordFocused(false)}
           />
+          <TouchableOpacity
+            style={styles.eyeIcon}
+            onPress={() => setShowPassword((prev) => !prev)}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={22} color="#888" />
+          </TouchableOpacity>
         </View>
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>Login</Text>
@@ -215,5 +224,11 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 16,
+    top: 14,
+    zIndex: 2,
   },
 });
