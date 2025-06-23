@@ -9,7 +9,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.jayroldsoriano.jayroldsorianoapp",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -37,6 +41,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "supabaseUrl": "https://xyz.supabase.co",
+      "supabaseAnonKey": "your_anon_key",
+      "router": {},
+      "eas": {
+        "projectId": "0a08e552-365d-4a44-81e0-a98e4a0e0947"
+      }
     }
   }
 }
