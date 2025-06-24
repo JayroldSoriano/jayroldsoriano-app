@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import FormField from '../../components/FormField';
 import { LoadingOverlay } from '../../components/LoadingOverlay';
 import { supabase } from '../../lib/supabase';
 import useAuthStore from '../../stores/auth';
@@ -22,91 +23,49 @@ export default function SignupScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Error states for each field
-  const [nameError, setNameError] = useState(false);
-  const [emailError, setEmailError] = useState(false);
-  const [passwordError, setPasswordError] = useState(false);
-  const [confirmError, setConfirmError] = useState(false);
-  const [codeError, setCodeError] = useState(false);
+  const [nameError, setNameError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmError, setConfirmError] = useState('');
+  const [codeError, setCodeError] = useState('');
 
   const { setUser, initialize } = useAuthStore();
 
   const handleSignup = async () => {
     // Reset all errors
-    setNameError(false);
-    setEmailError(false);
-    setPasswordError(false);
-    setConfirmError(false);
-    setCodeError(false);
+    setNameError('');
+    setEmailError('');
+    setPasswordError('');
+    setConfirmError('');
+    setCodeError('');
 
     // Highlight all empty fields
     let missing = false;
-    if (!name) { setNameError(true); missing = true; }
-    if (!email) { setEmailError(true); missing = true; }
-    if (!password) { setPasswordError(true); missing = true; }
-    if (!confirmPassword) { setConfirmError(true); missing = true; }
-    if (!recruitmentCode) { setCodeError(true); missing = true; }
-    if (missing) {
-      if (!name) {
-        Alert.alert('Name Required', 'Please enter your name.');
-      } else if (!email) {
-        Alert.alert('Email Required', 'Please enter your email.');
-      } else if (!password) {
-        Alert.alert('Password Required', 'Please enter a password.');
-      } else if (!confirmPassword) {
-        Alert.alert('Confirm Password', 'Please confirm your password.');
-      } else if (!recruitmentCode) {
-        Alert.alert('Missing Code', 'Recruitment code is required.');
-      }
-      return;
-    }
+    if (!name) { setNameError('Please enter your name.'); missing = true; }
+    if (!email) { setEmailError('Please enter your email.'); missing = true; }
+    if (!password) { setPasswordError('Please enter a password.'); missing = true; }
+    if (!confirmPassword) { setConfirmError('Please confirm your password.'); missing = true; }
+    if (!recruitmentCode) { setCodeError('Recruitment code is required.'); missing = true; }
+    if (missing) return;
 
     // Name validation: no special characters or numbers
-    if (!name) {
-      setNameError(true);
-      Alert.alert('Name Required', 'Please enter your name.');
-      return;
-    }
     if (!/^[A-Za-z\s]+$/.test(name)) {
-      setNameError(true);
-      Alert.alert('Invalid Name', 'Name should not include special characters or numbers.');
+      setNameError('Name should not include special characters or numbers.');
       return;
     }
     // Email validation: must have @ and end with a domain
-    if (!email) {
-      setEmailError(true);
-      Alert.alert('Email Required', 'Please enter your email.');
-      return;
-    }
     if (!/^\S+@\S+\.\S+$/.test(email)) {
-      setEmailError(true);
-      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      setEmailError('Please enter a valid email address.');
       return;
     }
     // Password validation: at least 8 chars, 1 letter, 1 number
-    if (!password) {
-      setPasswordError(true);
-      Alert.alert('Password Required', 'Please enter a password.');
-      return;
-    }
     if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+\-=]{8,}$/.test(password)) {
-      setPasswordError(true);
-      Alert.alert('Weak Password', 'Password must be at least 8 characters and include at least one letter and one number.');
-      return;
-    }
-    if (!confirmPassword) {
-      setConfirmError(true);
-      Alert.alert('Confirm Password', 'Please confirm your password.');
+      setPasswordError('Password must be at least 8 characters and include at least one letter and one number.');
       return;
     }
     if (password !== confirmPassword) {
-      setPasswordError(true);
-      setConfirmError(true);
-      Alert.alert('Password Mismatch', 'Passwords do not match.');
-      return;
-    }
-    if (!recruitmentCode) {
-      setCodeError(true);
-      Alert.alert('Missing Code', 'Recruitment code is required.');
+      setPasswordError('Passwords do not match.');
+      setConfirmError('Passwords do not match.');
       return;
     }
 
@@ -120,8 +79,8 @@ export default function SignupScreen() {
         },
       });
       if (error) {
-        setEmailError(true);
-        setPasswordError(true);
+        setEmailError(error.message);
+        setPasswordError(error.message);
         Alert.alert('Signup failed', error.message);
         return;
       }
@@ -152,78 +111,92 @@ export default function SignupScreen() {
       </View>
       <View style={styles.container}>
         <Text style={styles.title}>Sign up</Text>
-        <View style={styles.formGroup}>
-          <TextInput
-            placeholder="Name"
-            value={name}
-            onChangeText={setName}
-            style={[styles.input, nameFocused && styles.inputFocused, nameError && styles.inputError]}
-            placeholderTextColor="#888"
-            onFocus={() => setNameFocused(true)}
-            onBlur={() => setNameFocused(false)}
-          />
-        </View>
-        <View style={styles.formGroup}>
-          <TextInput
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            style={[styles.input, emailFocused && styles.inputFocused, emailError && styles.inputError]}
-            placeholderTextColor="#888"
-            onFocus={() => setEmailFocused(true)}
-            onBlur={() => setEmailFocused(false)}
-          />
-        </View>
-        <View style={styles.formGroup}>
-          <TextInput
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!showPassword}
-            style={[styles.input, passwordFocused && styles.inputFocused, passwordError && styles.inputError]}
-            placeholderTextColor="#888"
-            onFocus={() => setPasswordFocused(true)}
-            onBlur={() => setPasswordFocused(false)}
-          />
-          <TouchableOpacity
-            style={styles.eyeIcon}
-            onPress={() => setShowPassword((prev) => !prev)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={22} color="#888" />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.formGroup}>
-          <TextInput
-            placeholder="Confirm Password"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry={!showConfirmPassword}
-            style={[styles.input, confirmFocused && styles.inputFocused, confirmError && styles.inputError]}
-            placeholderTextColor="#888"
-            onFocus={() => setConfirmFocused(true)}
-            onBlur={() => setConfirmFocused(false)}
-          />
-          <TouchableOpacity
-            style={styles.eyeIcon}
-            onPress={() => setShowConfirmPassword((prev) => !prev)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Ionicons name={showConfirmPassword ? 'eye-off' : 'eye'} size={22} color="#888" />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.formGroup}>
-          <TextInput
-            placeholder=" Recruitment Code (Required)"
-            value={recruitmentCode}
-            onChangeText={setRecruitmentCode}
-            style={[styles.input, codeFocused && styles.inputFocused, codeError && styles.inputError]}
-            placeholderTextColor="#888"
-            onFocus={() => setCodeFocused(true)}
-            onBlur={() => setCodeFocused(false)}
-          />
-        </View>
+        <FormField
+          placeholder="Name"
+          value={name}
+          onChangeText={setName}
+          style={[
+            styles.input,
+            nameFocused && styles.inputFocused,
+          ]}
+          onFocus={() => setNameFocused(true)}
+          onBlur={() => setNameFocused(false)}
+          error={!!nameError}
+          errorMessage={nameError}
+        />
+        <FormField
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          style={[
+            styles.input,
+            emailFocused && styles.inputFocused,
+          ]}
+          onFocus={() => setEmailFocused(true)}
+          onBlur={() => setEmailFocused(false)}
+          error={!!emailError}
+          errorMessage={emailError}
+        />
+        <FormField
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry={!showPassword}
+          style={[
+            styles.input,
+            passwordFocused && styles.inputFocused,
+          ]}
+          onFocus={() => setPasswordFocused(true)}
+          onBlur={() => setPasswordFocused(false)}
+          error={!!passwordError}
+          errorMessage={passwordError}
+          children={
+            <TouchableOpacity
+              style={styles.eyeIcon}
+              onPress={() => setShowPassword((prev) => !prev)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={22} color="#888" />
+            </TouchableOpacity>
+          }
+        />
+        <FormField
+          placeholder="Confirm Password"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          secureTextEntry={!showConfirmPassword}
+          style={[
+            styles.input,
+            confirmFocused && styles.inputFocused,
+          ]}
+          onFocus={() => setConfirmFocused(true)}
+          onBlur={() => setConfirmFocused(false)}
+          error={!!confirmError}
+          errorMessage={confirmError}
+          children={
+            <TouchableOpacity
+              style={styles.eyeIcon}
+              onPress={() => setShowConfirmPassword((prev) => !prev)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name={showConfirmPassword ? 'eye-off' : 'eye'} size={22} color="#888" />
+            </TouchableOpacity>
+          }
+        />
+        <FormField
+          placeholder=" Recruitment Code (Required)"
+          value={recruitmentCode}
+          onChangeText={setRecruitmentCode}
+          style={[
+            styles.input,
+            codeFocused && styles.inputFocused,
+          ]}
+          onFocus={() => setCodeFocused(true)}
+          onBlur={() => setCodeFocused(false)}
+          error={!!codeError}
+          errorMessage={codeError}
+        />
         <TouchableOpacity style={styles.createButton} onPress={handleSignup}>
           <Text style={styles.createButtonText}>Sign up</Text>
         </TouchableOpacity>
@@ -269,20 +242,8 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     color: '#111',
   },
-  formGroup: {
-    marginBottom: 8,
-  },
   input: {
-    width: '100%',
-    minHeight: 50,
-    fontSize: 14,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-    borderWidth: 2,
-    borderColor: '#eee',
-    borderRadius: 12,
-    backgroundColor: '#fff',
-    color: '#222',
+    // This is just for focus styling, main input style is in FormField
   },
   inputFocused: {
     borderColor: '#339DFF',
@@ -291,9 +252,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.15,
     shadowRadius: 4,
-  },
-  inputError: {
-    borderColor: '#ff4444',
   },
   createButton: {
     marginTop: 8,
